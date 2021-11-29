@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".BLEActivity">
+
+    <data class="BLEDataBinding">
+        <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="br.com.diegolana.simpleble.ViewModelBLE" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/buttonScan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.buttonText}"
+            android:enabled="@{!viewModel.isBonded()}"
+            app:layout_constraintBottom_toTopOf="@+id/textViewDeviceName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Scan"/>
+
+        <TextView
+            android:id="@+id/textViewScanning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Scanning..."
+            android:visibility="@{viewModel.buttonVisibility ? View.VISIBLE : View.INVISIBLE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonScan" />
+
+        <TextView
+            android:id="@+id/textViewDeviceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="15sp"
+            android:text="@{viewModel.scanContent}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewScanning"
+            tools:text="Device Name" />
+
+        <Button
+            android:id="@+id/buttonConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect"
+            android:enabled="@{viewModel.isBonded()}"
+            android:onClick="@{v -> viewModel.connect()}"
+            android:layout_marginTop="50dp"
+            app:layout_constraintTop_toBottomOf="@+id/textViewDeviceName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Connect"
+            tools:enabled="false"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
