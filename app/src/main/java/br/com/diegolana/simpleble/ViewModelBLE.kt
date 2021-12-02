@@ -26,7 +26,7 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
     private val SERVICE_UUID = ParcelUuid.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b")
     private val CHARACTERISTIC_UUID = ParcelUuid.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8")
     private val CLIENT_CHARAC_CONFIG = ParcelUuid.fromString("00002902-0000-1000-8000-00805f9b34fb") // Client Characteristic Configuration
-    private val DEVICE_NAME = "HALL ESP32"
+    private val DEVICE_NAME = "POC Peripheral"
 
     private val buttonTextMutable: MutableLiveData<String> = MutableLiveData<String>("SCAN")
     val buttonText: LiveData<String> = buttonTextMutable
@@ -34,8 +34,8 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
     private val scanContentMutable: MutableLiveData<String> = MutableLiveData<String>("...")
     val scanContent: LiveData<String> = scanContentMutable
 
-    private val buttonVisibilityMutable: MutableLiveData<Boolean> = MutableLiveData<Boolean>(false)
-    val buttonVisibility: LiveData<Boolean> = buttonVisibilityMutable
+    private val isScanningMutable: MutableLiveData<Boolean> = MutableLiveData<Boolean>(false)
+    val isScanning: LiveData<Boolean> = isScanningMutable
 
     private val deviceMutable: MutableLiveData<BluetoothDevice?> = MutableLiveData(null)
     val isBonded: LiveData<Boolean> = Transformations.map(deviceMutable) { it != null }
@@ -81,6 +81,7 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
             Log.d(TAG, "result.device.uuids ${result.scanRecord}")
             Log.d(TAG, "device.bondState ${device.bondState}")
             device.createBond()
+            deviceMutable.postValue(device)
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -98,6 +99,7 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
     }
 
     private fun verifyBond() {
+        Log.i(TAG, "BONDED: ${bluetoothManager.adapter.bondedDevices}")
         bluetoothManager.adapter.bondedDevices.find { it.name == DEVICE_NAME }?.let {
             deviceMutable.postValue(it)
         }
@@ -109,9 +111,9 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
                 scanning = false
                 bluetoothLeScanner.stopScan(scanCallback)
                 buttonTextMutable.value = "START SCAN"
-                buttonVisibilityMutable.value = false
+                isScanningMutable.value = false
             }, SCAN_PERIOD)
-            buttonVisibilityMutable.value = true
+            isScanningMutable.value = true
             buttonTextMutable.value = "STOP SCAN"
             scanning = true
             startScan()
@@ -119,7 +121,7 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
             buttonTextMutable.value = "START SCAN"
             scanning = false
             bluetoothLeScanner.stopScan(scanCallback)
-            buttonVisibilityMutable.value = false
+            isScanningMutable.value = false
         }
     }
 
@@ -198,10 +200,9 @@ class ViewModelBLE(application: Application) : AndroidViewModel(application) {
         }
 
         private fun showValue(gattCharacteristic: BluetoothGattCharacteristic) {
-            val value = gattCharacteristic?.value
-            val intValue = Util.byteToInt(value)
-            Log.i(TAG, "value = $intValue")
-            scanContentMutable.postValue(intValue.toString())
+            val value = gattCharacteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
+            Log.i(TAG, "value = $value")
+            scanContentMutable.postValue(value.toString())
         }
     }
 
